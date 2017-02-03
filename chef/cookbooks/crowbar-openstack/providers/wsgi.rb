@@ -72,7 +72,7 @@ action :create do
       )
       # NOTE(aplanas) a :reload is not enough for apache, we need a
       # full restart to read the new vhost files
-      notifies :restart, resources(service: "apache2")
+      notifies :reload, resources(service: "apache2"), :delayed
     end
     Chef::Log.info "#{@new_resource} created / updated"
   end
