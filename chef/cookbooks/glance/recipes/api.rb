@@ -137,6 +137,26 @@ template node[:glance][:api][:config_file] do
   )
 end
 
+# If `show_multiple_locations` is enabled we need to update
+# policy.json in a more restrictive way.  Only admin (or image owner)
+# can now update the `image_location` metadate field.
+#
+# For more information check bsc#1023507, and upstream bug:
+# https://bugs.launchpad.net/ossn/+bug/1549483
+#
+# NOTE(aplanas) -- policy.json needs to be synchronized to current
+# version of OpenStack.
+template "/etc/glance/policy.json" do
+  source "policy.json.erb"
+  owner "root"
+  group "root"
+  mode 0o644
+  variables(
+    show_multiple_locations: node[:glance][:show_storage_location]
+  )
+  notifies :restart, "service[#{node[:glance][:api][:service_name]}]"
+end
+
 ha_enabled = node[:glance][:ha][:enabled]
 my_admin_host = CrowbarHelper.get_host_for_admin_url(node, ha_enabled)
 my_public_host = CrowbarHelper.get_host_for_public_url(node, node[:glance][:api][:protocol] == "https", ha_enabled)
